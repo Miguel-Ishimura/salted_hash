@@ -1,0 +1,80 @@
+# salted_hash
+Salted Hash in R
+
+----------REGISTER ACCOUNT------------
+#PACKAGES###########################
+#install.packages("digest")
+#install.packages("readtext")
+#install.packages("stringi")
+#install.packages("stringr")
+#install.packages("lettercase")
+#install.packages("data.table")
+#install.packages("openxlsx") 
+library(openxlsx)
+library(data.table)
+library(digest)
+library(readtext)
+library(stringi)
+library(stringr)
+library(lettercase)
+library(data.table)
+
+# Vectors________________________________________________________________#
+c.user <- c()
+c.salt <- c()
+c.hash <- c()
+
+# DATAFRAME_______________________________________________________________#
+df <- data.frame(User = c.user, Salt = c.salt, Hash = c.hash)
+
+repeat{
+# USER___________________________________________________________________#
+
+repeat{
+user <- readline(prompt="Type your username: ")  
+if(any(c.user == user)){
+print("This username already exists")}
+else {
+c.user <- append(c.user, user)
+user <- NULL
+break}
+}
+
+# PASSWORD_______________________________________________________________#
+    repeat {
+  print('Your password must contain: min. 6 characters, number(0-9), uppercase letter, simbol (!,@,#,$,% ou &):')
+  password.a <- readline(prompt = "Type your password: ");
+  password.b <- readline(prompt = "Confirm your password: ")
+  if(password.a == password.b &
+     str_length(password.a)>=6 &
+     sapply(regmatches(password.a, gregexpr("[!,@,#,$,%,&]", password.a, perl=TRUE)), length)>=1 &
+     sapply(regmatches(password.a, gregexpr("[A-Z]", password.a, perl=TRUE)), length)>=1 &
+     sapply(regmatches(password.a, gregexpr("[0-9]", password.a, perl=TRUE)), length)>=1){
+    break
+  } 
+  else { 
+    print("Try again. The passwords don't match or password requirements were not fullfiled")} }
+
+password <- password.a
+password.a <- NULL
+password.b <- NULL
+
+# SALT____________________________________________________________________#
+c.salt <- append(c.salt, stringi::stri_rand_strings(1, 50))
+s.password <- paste(tail(c.salt,n=1), password, sep = "")
+password <- NULL
+
+# HASH____________________________________________________________________#
+c.hash <- append(c.hash, digest(s.password, algo=c("sha256"), serialize=TRUE, file=FALSE,
+       length=Inf, skip="auto", ascii=FALSE, raw=FALSE, seed=0,
+       errormode=c("warn"),
+       serializeVersion=2))
+s.password <- NULL
+
+# UPDATE DATASET__________________________________________________________#
+df <- data.frame(User = c.user, Salt = c.salt, Hash = c.hash, stringsAsFactors = FALSE)
+print("Registered successfully!")
+}
+write.xlsx(df,"C:\\Users\\exemple.xlsx",sheetName = "Sheet1",col.names = TRUE,showNA=FALSE)
+
+
